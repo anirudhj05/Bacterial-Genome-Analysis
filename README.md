@@ -15,3 +15,8 @@ This pipeline is a bash script that uses a Conda/Mamba environment with the appr
 git clone https://github.com/anirudhj05/Bacterial-Genome-Analysis.git
 cd Bacterial-Genome-Analysis
 ```
+2. Environment Setup
+
+The required environments are set up as part of the main pipeline script (pipeline.sh). Here's what each environment is for and how they are configured:
+
+- 
