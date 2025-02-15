@@ -19,7 +19,7 @@ cd Bacterial-Genome-Analysis
 
 The required environments are set up as part of the main pipeline script (`sequence_cleaning_and_assembly_pipeline.sh`). Here's what each environment is for and how they are configured:
 
--** teamf environment:**
+- ** teamf environment:**
 
 This environment is specifically set up to handle the initial stages of genomic data processing which include read trimming and contaminant filtering.
 
