@@ -19,7 +19,7 @@ cd Bacterial-Genome-Analysis
 
 The required environments are set up as part of the main pipeline script (`sequence_cleaning_and_assembly_pipeline.sh`). Here's what each environment is for and how they are configured:
 
-- ** teamf environment:**
+- **teamf environment:**
 
 This environment is specifically set up to handle the initial stages of genomic data processing which include read trimming and contaminant filtering.
 
@@ -42,22 +42,22 @@ Tools:
 - Biopython: A set of freely available tools for biological computation. It's used here for manipulating biological data, within the custom script `filter.contigs.py`.
 The `filter.contigs.py` script processes genomic data by filtering contigs based on length, GC content, coverage, and compositional complexity. Here's how it works:
 
-### **Argument Parsing:**  
+1. **Argument Parsing:**  
 The script begins by defining the CLI, allowing the user to specify the input file, output file, and various filtering criteria such as minimum contig length and minimum coverage.
 
-### **File Handling:**  
+2. **File Handling:**  
 It handles both plain and gzip-compressed FASTA files as input.
 
-### **Biopython Usage:**  
+3. **Biopython Usage:**  
 The script uses the Biopython library to read genomic sequence data from FASTA files. Biopython facilitates the manipulation of genomic data, notably the extraction and analysis of sequence information.
 
-### **Filter Implementation:**
+4. **Filter Implementation:**
 - **Length Filter:** Discards sequences shorter than a specified threshold.
 - **Coverage Filter:** Uses regular expressions to extract coverage information from sequence headers and discards sequences with coverage below a specified threshold.
 - **GC Content Filter:** Calculates the GC content of sequences using Biopython's utilities and filters out sequences with extreme GC content values.
 - **Complexity Filter:** Ensures sequences contain a minimum number of different nucleotides, filtering out low-complexity sequences.
 
-### **Output Generation:**  
+5. **Output Generation:**  
 Sequences that pass all filters are written to an output file in FASTA format. Optionally, it can also generate a file containing sequences that were discarded during the filtering process, including the reasons for their exclusion in the sequence headers.
 
 ```bash
@@ -67,7 +67,7 @@ conda install biopython -y
 conda deactivate
 ```
 
--**qual_eval Environment:**
+- **qual_eval Environment:**
 
 This environment is used for the quality evaluation of the assembled genomes.  It assesses the quality and integrity of genome assemblies.
 
