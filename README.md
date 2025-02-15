@@ -113,3 +113,95 @@ The pipeline organizes its outputs into several directories, each tailored to a 
   - `report.txt`: A comprehensive text summary of the assembly quality, including metrics such as N50, L50, and total length, which are essential for assessing the completeness and integrity of the assemblies.
 
 # Gene Prediction and Annotation
+This pipeline is designed for gene prediction and annotation in microbial genomes. It predicts genes, annotates genomic features, identifies antimicrobial resistance genes, and analyzes pathogenic potentials.
+
+## Environment Setup
+
+Before running the pipeline, ensure that the necessary environments and tools are set up:
+
+- Prodigal for gene prediction: Fast and reliable microbial gene identification.
+- Bakta for rapid annotation: Accurate and up-to-date microbial genome annotation using a curated database.
+- AMRFinderPlus for AMR gene detection: Identifies AMR genes using the latest NCBI AMR gene database.
+- PathoFact for pathogenomic analysis: Determines the pathogenic potential by integrating various analyses including virulence factors and resistance genes.
+
+Environment for Prodigal:
+```bash
+#Prodigal
+conda create -n gene_pred
+conda activate gene_pred
+conda install -c bioconda prodigal
+conda deactivate
+```
+
+Environment for Bakta
+```bash
+#Bakta
+conda create -n bakta
+conda activate bakta
+conda install -c conda-forge -c bioconda bakta
+bakta_db download --output <output-path> --type full
+conda deactivate
+```
+
+Environment for AMRfinder:
+```bash
+# env for amrfinder
+conda create -n amrfinder
+conda activate amrfinder
+mamba install -c bioconda ncbi-amrfinderplus
+conda deactivate
+```
+
+Environment for Pathofact:
+```bash
+#env for pathofact
+git lfs install
+git clone -b master --recursive https://git-r3lab.uni.lu/laura.denies/PathoFact.git
+cd PathoFact
+conda env create -f=envs/PathoFact.yaml
+cd ..
+```
+
+### Note
+Bakta requires assembly files in zipped fasta format. You can use the option of gunzip [Option] [archive name/file name] to zip the files.
+
+## Running the Pipeline
+
+This pipeline takes the assembled fasta files as input from the sequence cleaning and genome pipeline and those are used by Prodigal, Bakta and PathOFact. The prodigal generates the faa and gff files that are used by AMR for determining the genes responsible for pathogenicity.
+
+To run the annotation pipeline, use the following command:
+```bash
+sh pipeline.sh [input_dir] [output_dir]
+```
+
+- **`input_dir`:** Directory containing the input genome sequences.
+- **`output_dir`:** Directory where the pipeline will write its outputs.
+
+## Output Files
+
+`prodigal/`- This directory contains the following output content:
+- **GFF**: The file ([isolate]_gene.coords.gff) contains gene predictions in GFF format, including start and end positions, strand direction, and other information about each predicted gene.
+- **FAA**: The file ([isolate]_protein.translations.faa) contains the amino acid sequences of the proteins encoded by the predicted genes, which can be used to further predict and analyze protein function.
+- **FASTA**: The file ([isolate]_gene.predictions.fasta) contains the predicted genes' nucleotide sequences, which can be used for subsequent genomic study such as gene function studies or comparative genomics.
+- **Log File**: A detailed log ([isolate]_logfile.log) containing the execution data as well as any potential warnings or errors discovered by Prodigal during the gene prediction process.
+
+`bakta/` - This directory contains the following output content:
+- Bakta provides detailed annotation files containing information on identified genes, their functions, and classifications. Annotations are frequently stored in formats such as **GenBank** and **JSON**, which work well with a variety of bioinformatics tools for further analysis.
+- `bakta_output.log`: This log file contains detailed information about the annotation process, including any errors or warnings that occurred and statistics about the genomic features annotated.
+- `bakta_error.log`: Specifically captures any errors encountered during the annotation process, helping in troubleshooting and ensuring the quality of the annotation.
+
+`amrfinder/` - This directory contains the following output content:
+- **AMR Gene List**: This file ([isolate]_amr) contains a list of all antimicrobial resistance genes found in the genome. The output comprises the gene's name, location on the genome, and the resistance mechanism or family it belongs to. This information is critical for understanding the organism's resistance profile and can help with  epidemiological studies. This output is typically in a plain text format
+
+`PathoFact/` -  This directory contains the following output content:
+PathoFact analyzes genomic data for virulence factors, antimicrobial resistance genes, and other pathogenic potentials. 
+- **Virulence Factors**: Lists genes and elements identified as virulence factors, including their mechanisms and potential effects on host-pathogen interactions.
+- **Resistance Genes**: Similar to AMRFinderPlus but integrated within the broader context of pathogenic potential.
+- **Metabolic Capabilities**: Analyzes and reports on the metabolic pathways present in the organism, which can influence pathogenicity.
+These outputs include files in TSV format.
+- **Statistical Summary Files**: Typically in CSV format, providing an overview with numerical data about the detected pathogenic features.
+- **Classification Summarie**s: Also in CSV format, these files break down the number of genes in different pathogenic categories, which aids in the quick assessment and comparison across samples.
+
+# Genotyping and Taxonomic and Quality Assessments
+
+
