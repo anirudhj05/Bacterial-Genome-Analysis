@@ -90,7 +90,7 @@ The pipeline accepts paired-end FastQ files. Ensure your input directory contain
 To run the pipeline, use the following command:
 
 ```bash
-sh pipeline.sh /path/to/input_dir /path/to/output_dir
+sh sequence_cleaning_and_assembly_pipeline.sh /path/to/input_dir /path/to/output_dir
 ```
 - **input_dir:** Directory containing input FastQ files.
 - **output_dir:** Directory where the pipeline will write its output.
@@ -171,7 +171,7 @@ This pipeline takes the assembled fasta files as input from the sequence cleanin
 
 To run the annotation pipeline, use the following command:
 ```bash
-sh pipeline.sh [input_dir] [output_dir]
+sh Gene_Prediction_and_Annotation.sh [input_dir] [output_dir]
 ```
 
 - **`input_dir`:** Directory containing the input genome sequences.
@@ -204,4 +204,81 @@ These outputs include files in TSV format.
 
 # Genotyping and Taxonomic and Quality Assessments
 
+This pipeline combines several bioinformatics tools to perform genotyping, taxonomic categorization, and quality assessments on microbial genomes. It uses high-throughput sequencing data to predict and identify microbial genes, as well as analyze antimicrobial resistance and genome assembly quality.
 
+## Environment Setup
+The required environments are set up as part of the main pipeline script (`Genotyping_taxonomic_quality_assessment.sh`). Here's what each environment is for and how they are configured:
+## Genotyping
+
+- **MLST Environment:**
+This environment uses MLST (Multi-Locus Sequence Typing) for characterizing bacterial species based on sequences of internal housekeeping genes. It assigns allelic profiles to these genes and combines the profiles to define an isolate's sequence type. The tool extracts specific DNA fragments from the genome, sequences them, and compares the sequences to known alleles in a database.
+
+- **MAAST Environment:**
+MAAST (Metagenomic Analysis Software Tool) is intended for microbial genome analysis and typing. It integrates functions such as sequence alignment, phylogenetic analysis, and variant calling to provide information about microbial populations' genetic links and functional capacities.  The tool typically requires compilation from source code and is executed to analyze genome sequences to identify genetic types based on predefined criteria.
+
+## Taxonomic Analysis
+- **LisSero Environment:**
+LisSero is specifically designed for rapid serotyping of Listeria species based on whole genome sequencing data. It uses known serotype-specific gene sequences and performs rapid comparisons to assign a serotype to Listeria isolates.
+
+## Genome Quality Assessment
+- **CheckM Environment:**
+CheckM includes tools for evaluating the quality of microbial genomes retrieved from isolates, metagenomes, and single cells. It aids in determining the completeness and contamination of genome assemblies. It uses lineage-specific marker genes to evaluate the completeness and assess potential contamination of genome assemblies.
+
+- **QUAST Environment:**
+QUAST (Quality Assessment Tool for Genome Assemblies) evaluates genome assemblies by analyzing various metrics that reflect the quality of the assembly. It compares genome assemblies to reference sequences if available, and calculates statistical metrics such as N50, L50, and total length, among others.
+
+## Running the Pipeline
+- **Input Data:** Directory containing FASTA files (.fa or .fna)
+
+- **Running the Pipeline:**
+```bash
+sh Genotyping_taxonomic_quality_assessment.sh [input_directory] [output_directory]
+```
+### Note: Ensure to provide the absolute path for input_directory. 
+
+## Output Files:
+- **MLST/**: Summary files in `.tsv` format detailing the MLST profiles.
+- **MAAST/**: Detailed genotype data and phylogenetic trees in respective directories.
+- **LisSero/**: Aggregated serotyping results are in `.txt` format.
+- **CheckM/**: Outputs include detailed text and `.tsv` reports on genome quality, highlighting potential issues and overall assembly quality.
+- **QUAST/**: Provides comprehensive assembly evaluation reports in HTML and text formats.
+
+# Comparative Genomics
+
+This pipeline is designed for comprehensive comparative genomic analysis including genomic similarity assessment, phylogenetic tree construction, pangenome analysis, and antimicrobial resistance (AMR) gene detection. Comparative genomics is an useful scientific approach that includes comparing the genetic information from different organisms to better comprehend their evolutionary links, find variations in genes, and reveal functional capabilities. In the context of pathogen outbreak research, comparative genomics can disclose how distinct strains differ from each other and from known reference genomes, which is critical for pinpointing the outbreak source and understanding the disease's evolution.
+
+## Environment Setup
+The required environments are set up as part of the main pipeline script (`comparative_genomics.sh`). Here's what each environment is for and how they are configured:
+
+- **gsearch**: This tool is used to perform advanced genomic searches and comparisons using MinHash-like signatures and Hnsw (Hierarchical Navigable Small World) graphs.
+- **parsnp**: This tool is used for phylogenetic reconstruction and identifying core genome single nucleotide polymorphisms (SNPs).
+- **roary**: This tool is used for pangenome analysis, identifying the core and accessory genes across multiple genomes.
+- **amrfinder**: This tool is used for identifying AMR genes, providing crucial data for understanding resistance mechanisms and guiding treatment options.
+## Running the Pipeline
+Before running the pipeline, update the base_dir variable in the script to reflect your local directory path.
+```bash
+base_dir="/home/USER/biol7210/group4_comp_genomics"
+mkdir -p $base_dir/{gsearch_results,prokka,amrfinder_output,amrfinder_output_filtered,assemblies,parsnp_outdir,filtered_skesa_asm/outbreak_samples/{gff,faa,fasta}}
+```
+Replace /home/USER/biol7210/group4_comp_genomics with your desired base directory path.
+
+To run the pipeline, use the following command:
+```bash
+./comparative_genomics.sh
+```
+- **Input data:**
+  - FASTA files (.fa or .fna) stored in a  designated directory:  `$filtered_skesa_asm_dir`.
+  - FASTA format for amino acids (.faa) used by AMRfinder to identify AMR genes Usually found within a directory structured, like `$base_dir/outbreak_samples/faa/`.
+ 
+## Output files
+- `gsearch_results/results.txt` - Contains the results of genomic database searches conducted using MinHash algorithms, which efficiently estimate the similarity across genomic datasets. This output file includes similarity scores and identities for genomes with substantial matches, which might help identify closely related strains or possible outbreaks.
+- `$parsnp_outdir` -  Includes multiple files that together describe the core genome alignment and the resultant phylogenetic tree:
+    - Phylogenetic Tree File: Typically in Newick format, which can be viewed using tools like FigTree. This tree helps visualize the evolutionary relationships between the analyzed genomes.
+    - Alignment Files: Contain the aligned sequences of the core genomes, which are critical for identifying evolutionary conserved regions.
+    - Summary Files: Provide a concise overview of the alignment metrics, such as coverage of the core genome and any notable genomic variations.
+- `$prokka_dir/roary_results` - The results from Roary's pangenome analysis include:
+    - Gene Presence and Absence Matrix: A comprehensive table that lists which genes are present in which genomes, providing insights into the core and accessory genes across the studied strains.
+    - Graphs and Charts: Visual representations of the pangenome dynamics, such as the number of new genes discovered with each additional genome sequenced.
+    - Detailed Statistics: Text files and spreadsheets detailing the number of core, soft-core, shell, and cloud genes, which help in understanding the genetic makeup of the microbial community or species under study.
+- `$amrfinder_output` - Lists the genes associated with antimicrobial resistance, their possible functions, and the mechanisms by which they confer resistance and includes metadata about the conditions under which each gene confers resistance, which is crucial for clinical settings and resistance management.   
+   
